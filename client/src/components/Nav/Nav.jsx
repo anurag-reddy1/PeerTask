@@ -1,9 +1,6 @@
 // client/src/components/Nav.jsx
-// Shared top navigation (React-Bootstrap Navbar). Links route to both feature
-// slices; the right side shows auth state (login/register when logged out,
-// name + logout when in).
 import "./Nav.css";
-import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import { Navbar, Nav, NavDropdown, Container, Button } from "react-bootstrap";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth.jsx";
 
@@ -24,7 +21,6 @@ export default function AppNav() {
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="main-nav" />
         <Navbar.Collapse id="main-nav">
-          {/* Left: browse links (+ authoring/my links when logged in). */}
           <Nav className="me-auto">
             <Nav.Link as={NavLink} to="/tasks">
               Browse Tasks
@@ -34,29 +30,33 @@ export default function AppNav() {
             </Nav.Link>
             {user && (
               <>
-                <Nav.Link as={NavLink} to="/tasks/new">
-                  Post Task
-                </Nav.Link>
-                <Nav.Link as={NavLink} to="/listings/new">
-                  New Listing
-                </Nav.Link>
-                <Nav.Link as={NavLink} to="/my/tasks">
-                  My Tasks
-                </Nav.Link>
-                <Nav.Link as={NavLink} to="/my/offers">
-                  My Offers
-                </Nav.Link>
-                <Nav.Link as={NavLink} to="/my/listings">
-                  My Listings
-                </Nav.Link>
-                <Nav.Link as={NavLink} to="/my/bookings">
-                  My Bookings
-                </Nav.Link>
+                <NavDropdown title="Post" id="nav-post">
+                  <NavDropdown.Item as={NavLink} to="/tasks/new">
+                    Post a Task
+                  </NavDropdown.Item>
+                  <NavDropdown.Item as={NavLink} to="/listings/new">
+                    New Listing
+                  </NavDropdown.Item>
+                </NavDropdown>
+                <NavDropdown title="My Account" id="nav-my">
+                  <NavDropdown.Item as={NavLink} to="/my/tasks">
+                    My Tasks
+                  </NavDropdown.Item>
+                  <NavDropdown.Item as={NavLink} to="/my/offers">
+                    My Offers
+                  </NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item as={NavLink} to="/my/listings">
+                    My Listings
+                  </NavDropdown.Item>
+                  <NavDropdown.Item as={NavLink} to="/my/bookings">
+                    My Bookings
+                  </NavDropdown.Item>
+                </NavDropdown>
               </>
             )}
           </Nav>
 
-          {/* Right: auth controls. */}
           <Nav className="align-items-lg-center">
             {user ? (
               <>
