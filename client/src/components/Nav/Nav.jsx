@@ -2,9 +2,10 @@
 // Shared top navigation (React-Bootstrap Navbar). Links route to both feature
 // slices; the right side shows auth state (login/register when logged out,
 // name + logout when in).
+import "./Nav.css";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
 import { NavLink, Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth.jsx";
+import { useAuth } from "../../hooks/useAuth.jsx";
 
 export default function AppNav() {
   const { user, logout } = useAuth();

@@ -9,7 +9,7 @@ import { AuthProvider } from "./hooks/useAuth.jsx";
 // Bootstrap's stylesheet first (light theme = Bootstrap default), then our few
 // small overrides on top.
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./styles.css";
+import "./styles/styles.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
