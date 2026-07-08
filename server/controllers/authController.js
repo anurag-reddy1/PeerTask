@@ -92,7 +92,7 @@ export function logout(req, res, next) {
   });
 }
 
-// GET /api/auth/session — return the current user, or 401 if not logged in.
+// GET /api/auth/session — return the current user, or { user: null } if not logged in.
 export function session(req, res) {
   // req.user was set by deserializeUser (already passwordHash-free), but we run
   // it through publicUser again defensively.

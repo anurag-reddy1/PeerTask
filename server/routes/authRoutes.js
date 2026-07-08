@@ -8,13 +8,12 @@ import {
   logout,
   session,
 } from "../controllers/authController.js";
-import { authGuard } from "../middleware/authGuard.js";
 
 const router = Router();
 
 router.post("/register", register); // create account (bcrypt hash)
 router.post("/login", login); // passport-local session login
 router.post("/logout", logout); // destroy session
-router.get("/session", authGuard, session); // current user or 401
+router.get("/session", session); // current user or null
 
 export default router;
