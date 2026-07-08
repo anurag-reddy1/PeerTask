@@ -1,5 +1,6 @@
 // client/src/components/Pagination.jsx
 // Simple prev/next pager driven by the { page, pages, total } the API returns.
+import PropTypes from "prop-types";
 import { Button } from "react-bootstrap";
 
 export default function Pagination({ page, pages, total, onPage }) {
@@ -28,3 +29,10 @@ export default function Pagination({ page, pages, total, onPage }) {
     </div>
   );
 }
+
+Pagination.propTypes = {
+  page: PropTypes.number.isRequired,
+  pages: PropTypes.number.isRequired,
+  total: PropTypes.number.isRequired,
+  onPage: PropTypes.func.isRequired,
+};

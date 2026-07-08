@@ -2,6 +2,7 @@
 // Route guard for pages that require login. While the session check is in
 // flight we show a spinner; once resolved we either render the page or redirect
 // to /login (remembering where the user was trying to go).
+import PropTypes from "prop-types";
 import { Navigate, useLocation } from "react-router-dom";
 import { Spinner } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth.jsx";
@@ -20,3 +21,7 @@ export default function ProtectedRoute({ children }) {
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   return children;
 }
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
