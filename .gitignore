@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# build output
+client/dist/
+
+# env files (local only — real env vars are set in the host/Render dashboard)
+.env
+server/.env
+.env.example
+server/.env.example
+
+# misc
+npm-debug.log*
+.DS_Store
+
+# seed
+server/seed.js
