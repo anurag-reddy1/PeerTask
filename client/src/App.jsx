@@ -5,19 +5,19 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
-import Home from "./pages/Home.jsx";
+import Home from "./pages/Home/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 
 // Slice 1 — Tasks & Offers
-import BrowseTasks from "./pages/BrowseTasks.jsx";
+import BrowseTasks from "./pages/BrowseTasks/BrowseTasks.jsx";
 import CreateTask from "./pages/CreateTask.jsx";
 import TaskDetail from "./pages/TaskDetail.jsx";
 import MyTasks from "./pages/MyTasks.jsx";
 import MyOffers from "./pages/MyOffers.jsx";
 
 // Slice 2 — Listings & Bookings
-import BrowseListings from "./pages/BrowseListings.jsx";
+import BrowseListings from "./pages/BrowseListings/BrowseListings.jsx";
 import CreateListing from "./pages/CreateListing.jsx";
 import ListingDetail from "./pages/ListingDetail.jsx";
 import MyListings from "./pages/MyListings.jsx";

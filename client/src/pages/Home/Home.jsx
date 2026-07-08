@@ -1,8 +1,9 @@
 // client/src/pages/Home.jsx
 // Landing page linking to both feature slices.
+import "./Home.css";
 import { Link } from "react-router-dom";
 import { Row, Col, Card, Button } from "react-bootstrap";
-import { useAuth } from "../hooks/useAuth.jsx";
+import { useAuth } from "../../hooks/useAuth.jsx";
 
 export default function Home() {
   const { user } = useAuth();
