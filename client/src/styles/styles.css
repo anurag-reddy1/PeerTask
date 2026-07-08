@@ -1,0 +1,6 @@
+/* Global styles. Bootstrap 5 (imported in main.jsx) provides the base;
+   this file only holds tweaks that apply to the whole page. */
+
+body {
+  background-color: #f6f7f9;
+}
