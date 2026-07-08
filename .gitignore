@@ -18,3 +18,4 @@ npm-debug.log*
 
 # seed
 server/seed.js
+server/seed_1000.js
