@@ -1,20 +1,19 @@
-// client/src/pages/BrowseTasks.jsx
-// Browse open tasks with filters (budget range, location, availableAfter) and
-// pagination. Hits GET /api/tasks, which runs the aggregation pipeline.
+// client/src/pages/BrowseListings.jsx
+// Browse available listings with filters (category, maxRate, availableAfter)
+// and pagination. Hits GET /api/listings (aggregation pipeline).
+import "./BrowseListings.css";
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Row, Col, Card, Form, Button, Badge, Spinner } from "react-bootstrap";
-import { api, qs } from "../services/api.js";
-import { fmtRange } from "../services/fmt.js";
-import ErrorMessage from "../components/ErrorMessage.jsx";
-import Pagination from "../components/Pagination.jsx";
+import { api, qs } from "../../services/api.js";
+import { fmtRange } from "../../services/fmt.js";
+import ErrorMessage from "../../components/ErrorMessage.jsx";
+import Pagination from "../../components/Pagination.jsx";
 
-export default function BrowseTasks() {
-  // Filter form state (kept separate from the "applied" filters used to query).
+export default function BrowseListings() {
   const [filters, setFilters] = useState({
-    minBudget: "",
-    maxBudget: "",
-    location: "",
+    category: "",
+    maxRate: "",
     availableAfter: "",
   });
   const [applied, setApplied] = useState({});
@@ -31,7 +30,7 @@ export default function BrowseTasks() {
     setError(null);
     try {
       const query = qs({ ...applied, page, limit: 10 });
-      const res = await api.get(`/api/tasks${query}`);
+      const res = await api.get(`/api/listings${query}`);
       setData(res);
     } catch (err) {
       setError(err);
@@ -46,56 +45,41 @@ export default function BrowseTasks() {
 
   function applyFilters(e) {
     e.preventDefault();
-    setPage(1); // reset to first page when filters change
+    setPage(1);
     setApplied({ ...filters });
   }
-
   function clearFilters() {
-    setFilters({
-      minBudget: "",
-      maxBudget: "",
-      location: "",
-      availableAfter: "",
-    });
+    setFilters({ category: "", maxRate: "", availableAfter: "" });
     setApplied({});
     setPage(1);
   }
 
   return (
     <div>
-      <h1 className="h3 mb-3">Browse Tasks</h1>
+      <h1 className="h3 mb-3">Browse Listings</h1>
 
       <Card className="mb-4 shadow-sm">
         <Card.Body>
           <Form onSubmit={applyFilters}>
             <Row className="g-3 align-items-end">
-              <Col xs={6} md={2}>
-                <Form.Label>Min budget</Form.Label>
+              <Col xs={12} md={3}>
+                <Form.Label>Category</Form.Label>
+                <Form.Control
+                  value={filters.category}
+                  onChange={set("category")}
+                  placeholder="e.g. Tutoring"
+                />
+              </Col>
+              <Col xs={6} md={3}>
+                <Form.Label>Max rate ($/hr)</Form.Label>
                 <Form.Control
                   type="number"
                   min="0"
-                  value={filters.minBudget}
-                  onChange={set("minBudget")}
+                  value={filters.maxRate}
+                  onChange={set("maxRate")}
                 />
               </Col>
-              <Col xs={6} md={2}>
-                <Form.Label>Max budget</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="0"
-                  value={filters.maxBudget}
-                  onChange={set("maxBudget")}
-                />
-              </Col>
-              <Col xs={12} md={3}>
-                <Form.Label>Location</Form.Label>
-                <Form.Control
-                  value={filters.location}
-                  onChange={set("location")}
-                  placeholder="e.g. Snell"
-                />
-              </Col>
-              <Col xs={12} md={3}>
+              <Col xs={12} md={4}>
                 <Form.Label>Available after</Form.Label>
                 <Form.Control
                   type="datetime-local"
@@ -127,32 +111,36 @@ export default function BrowseTasks() {
           <Spinner animation="border" />
         </div>
       ) : data.items.length === 0 ? (
-        <p className="text-muted">No open tasks match your filters.</p>
+        <p className="text-muted">No listings match your filters.</p>
       ) : (
         <Row className="g-3">
-          {data.items.map((t) => (
-            <Col md={6} lg={4} key={t._id}>
+          {data.items.map((l) => (
+            <Col md={6} lg={4} key={l._id}>
               <Card className="h-100 shadow-sm">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-start gap-2">
                     <Card.Title className="h6 mb-1">
-                      <Link to={`/tasks/${t._id}`}>{t.title}</Link>
+                      <Link to={`/listings/${l._id}`}>{l.title}</Link>
                     </Card.Title>
-                    <Badge bg="primary">${t.budget}</Badge>
+                    <Badge bg="primary">${l.rate}/hr</Badge>
                   </div>
                   <Card.Text className="text-muted small clamp">
-                    {t.description}
+                    {l.description}
                   </Card.Text>
-                  <div className="small text-muted">📍 {t.location}</div>
-                  <div className="small text-muted">
-                    🕓 {fmtRange(t.timeWindow)}
+                  <div className="d-flex flex-wrap gap-2 align-items-center small text-muted">
+                    <Badge bg="light" text="dark">
+                      {l.category}
+                    </Badge>
+                    {l.availabilitySlots?.[0] && (
+                      <span>🕓 {fmtRange(l.availabilitySlots[0])}</span>
+                    )}
                   </div>
                   <div className="d-flex justify-content-between align-items-center mt-2 small text-muted">
                     <span>
-                      {t.poster?.name} · {t.poster?.school}
+                      {l.provider?.name} · {l.provider?.school}
                     </span>
                     <Badge bg="light" text="dark">
-                      {t.pendingOfferCount} pending
+                      {l.pendingBookingCount} pending
                     </Badge>
                   </div>
                 </Card.Body>

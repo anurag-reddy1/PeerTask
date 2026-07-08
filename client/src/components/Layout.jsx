@@ -3,7 +3,7 @@
 // Container.
 import PropTypes from "prop-types";
 import { Container } from "react-bootstrap";
-import Nav from "./Nav.jsx";
+import Nav from "./Nav/Nav.jsx";
 
 export default function Layout({ children }) {
   return (
