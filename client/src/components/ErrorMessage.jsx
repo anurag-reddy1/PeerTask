@@ -2,6 +2,7 @@
 // Friendly error banner (React-Bootstrap Alert). Accepts an ApiError (or any
 // Error). 409 conflicts get a warning color + an extra hint since they're
 // expected in the concurrency demos.
+import PropTypes from "prop-types";
 import { Alert } from "react-bootstrap";
 
 export default function ErrorMessage({ error }) {
@@ -19,3 +20,10 @@ export default function ErrorMessage({ error }) {
     </Alert>
   );
 }
+
+ErrorMessage.propTypes = {
+  error: PropTypes.shape({
+    message: PropTypes.string,
+    status: PropTypes.number,
+  }),
+};
