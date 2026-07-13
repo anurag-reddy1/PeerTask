@@ -41,6 +41,24 @@ export async function requestBooking(req, res, next) {
       );
     }
 
+    // Prevent double-booking: reject the request up front if it overlaps a slot
+    // that is already CONFIRMED for this listing. Two slots overlap when one
+    // starts before the other ends AND ends after the other starts. (The
+    // confirm path has its own atomic guard for concurrent confirms; this gives
+    // the requester an immediate, clear 409 rather than a booking that could
+    // never be confirmed.)
+    const overlapsConfirmed = (listing.confirmedSlots || []).some((slot) => {
+      const s = new Date(slot.start);
+      const e = new Date(slot.end);
+      return s < requestedSlot.end && e > requestedSlot.start;
+    });
+    if (overlapsConfirmed) {
+      throw new ApiError(
+        409,
+        "That time slot overlaps a booking already confirmed for this listing. Please choose a different time."
+      );
+    }
+
     const doc = {
       listingId,
       requesterId: req.user._id,
