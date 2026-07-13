@@ -33,9 +33,50 @@ export default function CreateListing() {
     setSlots(slots.filter((_, idx) => idx !== i));
   }
 
+  // Client-side pre-submit validation mirroring the server rules, so users get
+  // immediate feedback in the form. The server remains the source of truth and
+  // its 400 responses are surfaced through the same ErrorMessage banner below.
+  function validate() {
+    if (!form.title.trim()) return "Please enter a title.";
+    if (!form.description.trim()) return "Please enter a description.";
+    if (!form.category.trim()) return "Please enter a category.";
+    const rate = Number(form.rate);
+    if (!Number.isFinite(rate) || rate <= 0) {
+      return "Rate must be a positive number.";
+    }
+    if (slots.length === 0) return "Add at least one availability slot.";
+    const now = Date.now();
+    const parsed = [];
+    for (const s of slots) {
+      if (!s.start || !s.end)
+        return "Each availability slot needs a start and end.";
+      const start = new Date(s.start).getTime();
+      const end = new Date(s.end).getTime();
+      if (Number.isNaN(start) || Number.isNaN(end)) {
+        return "Availability slots must have valid dates.";
+      }
+      if (start >= end) return "Each slot's start must be before its end.";
+      if (end <= now) return "Availability slots must end in the future.";
+      parsed.push({ start, end });
+    }
+    // Reject slots that overlap one another.
+    const sorted = [...parsed].sort((a, b) => a.start - b.start);
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].start < sorted[i - 1].end) {
+        return "Availability slots must not overlap one another.";
+      }
+    }
+    return null;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+    const message = validate();
+    if (message) {
+      setError({ status: 400, message });
+      return;
+    }
     setBusy(true);
     try {
       const body = {
