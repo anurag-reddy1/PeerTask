@@ -15,7 +15,3 @@ server/.env.example
 # misc
 npm-debug.log*
 .DS_Store
-
-# seed
-server/seed.js
-server/seed_1000.js
