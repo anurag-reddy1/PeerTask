@@ -11,6 +11,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import PropTypes from "prop-types";
 import { api } from "../services/api.js";
 
 const AuthContext = createContext(null);
@@ -58,6 +59,10 @@ export function AuthProvider({ children }) {
   const value = { user, loading, login, register, logout };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 // Hook used throughout the app to read auth state.
 // eslint-disable-next-line react-refresh/only-export-components
