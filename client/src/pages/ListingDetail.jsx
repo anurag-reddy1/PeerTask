@@ -66,7 +66,18 @@ export default function ListingDetail() {
       setSlot({ start: "", end: "" });
       await load();
     } catch (err) {
-      setError(err);
+      // A 409 here means the slot overlaps an already-confirmed booking. Show a
+      // friendly, actionable message instead of a raw request failure.
+      if (err.status === 409) {
+        setError({
+          status: 409,
+          message:
+            err.message ||
+            "That time slot is already booked. Please pick a different time.",
+        });
+      } else {
+        setError(err);
+      }
     }
   }
 
