@@ -16,7 +16,7 @@ PeerTask gives university students a trusted, campus-scoped marketplace to excha
 
 ## Screenshot
 
-> _Add a screenshot or GIF of the running application here._
+![PeerTask homepage](./Screenshots/PeerTaskSS.png)
 
 ---
 
@@ -226,13 +226,17 @@ NODE_ENV=production
 
 ## GenAI Usage
 
-- **Tool**: Claude Sonnet 4.6 (Anthropic)
-- **Usage Highlights**:
-  - _Project scaffold_: Generated the full-stack project structure, all Express routes/controllers, Passport auth, MongoDB aggregation pipelines, and React pages from a detailed specification.
-  - _React-Bootstrap migration_: Converted hand-written dark-theme CSS to React-Bootstrap light theme across all 13 pages and 5 components.
-  - _Atomic concurrency patterns_: Designed and implemented the `findOneAndUpdate` race guards for offer acceptance and booking confirmation.
-  - _ESLint + Prettier setup_: Configured flat ESLint configs for both server (ESLint 10) and client (ESLint 9) packages with Prettier integration.
-  - _Seed script_: Generated `seed_1000.js` with a deterministic pseudo-random function producing 3,000+ synthetic records across all five collections.
+Tool: Claude Sonnet 4.6 (Anthropic)
+
+Usage Highlights:
+
+Code Review & Security Audits: Utilized the model to audit core backend controllers, resulting in the implementation of robust atomic concurrency patterns using MongoDB findOneAndUpdate race guards to securely prevent double-booking anomalies.
+
+Refactoring & UI Standardization: Consulted the model on the most efficient path to migrate a legacy custom dark-theme CSS codebase into a standardized, responsive React-Bootstrap light-theme system across components and views.
+
+Tooling & Linter Optimization: Leveraged suggestions to configure clean, isolated flat ESLint configurations (v9 for client, v10 for server) integrated with Prettier to enforce strict production-ready code quality standards.
+
+Performance Testing Strategy: Used the tool to review a mock-data script strategy, adopting suggestions for a deterministic pseudo-random generator function inside seed_1000.js to scale testing up to 3,000+ relational records.
 
 ---
 
@@ -266,9 +270,9 @@ Northeastern University — Khoury College of Computer Sciences
 
 ---
 
-## Live Project
+## Live Project Link
 
-🌐 _Render deployment URL to be added before submission._
+https://peertask-84vp.onrender.com/
 
 ---
 
