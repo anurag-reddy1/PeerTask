@@ -16,7 +16,7 @@ PeerTask gives university students a trusted, campus-scoped marketplace to excha
 
 ## Screenshot
 
-![PeerTask homepage](./Screenshots/PeerTaskSS.png)
+![PeerTask homepage](./client/images/PeerTaskSS.png)
 
 ---
 
@@ -266,7 +266,7 @@ Northeastern University — Khoury College of Computer Sciences
 
 ## Video Demonstration
 
-🎥 _Link to be added before submission._
+https://www.youtube.com/watch?v=twsdkwUQ_OM
 
 ---
 
