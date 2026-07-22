@@ -14,6 +14,11 @@ import {
 export async function submitOffer(req, res, next) {
   try {
     const taskId = toObjectId(req.params.id, "task id");
+    // CODE REVIEW: The design document specifies offers should
+// include a price field, but only 'message' is being saved.
+// Suggestion: Add price validation here:
+// const price = requirePositiveNumber(req.body.price, "price");
+// and include it in the doc object below.
     const message = requireNonEmptyString(req.body.message, "message");
 
     const task = await collections.tasks().findOne({ _id: taskId });
