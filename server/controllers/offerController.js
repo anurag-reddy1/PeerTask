@@ -177,6 +177,12 @@ export async function myOffers(req, res, next) {
         { $match: { helperId: req.user._id } },
         {
           $lookup: {
+            // CODE REVIEW: Collection name "Tasks" uses capital T here,
+// but browseTasks pipeline uses "TaskOffers" and "Users".
+// If MongoDB collection is named "tasks" (lowercase) this
+// $lookup will silently return empty results.
+// Suggestion: Verify collection name matches exactly, or
+// use a shared constant for collection names.
             from: "Tasks",
             localField: "taskId",
             foreignField: "_id",
