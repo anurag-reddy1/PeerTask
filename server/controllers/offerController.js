@@ -14,6 +14,11 @@ import {
 export async function submitOffer(req, res, next) {
   try {
     const taskId = toObjectId(req.params.id, "task id");
+    // CODE REVIEW: The design document specifies offers should
+// include a price field, but only 'message' is being saved.
+// Suggestion: Add price validation here:
+// const price = requirePositiveNumber(req.body.price, "price");
+// and include it in the doc object below.
     const message = requireNonEmptyString(req.body.message, "message");
 
     const task = await collections.tasks().findOne({ _id: taskId });
@@ -172,6 +177,12 @@ export async function myOffers(req, res, next) {
         { $match: { helperId: req.user._id } },
         {
           $lookup: {
+            // CODE REVIEW: Collection name "Tasks" uses capital T here,
+// but browseTasks pipeline uses "TaskOffers" and "Users".
+// If MongoDB collection is named "tasks" (lowercase) this
+// $lookup will silently return empty results.
+// Suggestion: Verify collection name matches exactly, or
+// use a shared constant for collection names.
             from: "Tasks",
             localField: "taskId",
             foreignField: "_id",
