@@ -288,6 +288,11 @@ export async function deleteTask(req, res, next) {
 // GET /api/tasks/mine/posted — tasks posted by the current user (My Tasks page).
 export async function myTasks(req, res, next) {
   try {
+    // CODE REVIEW: This returns ALL tasks for the user with no
+// limit or pagination. A heavy user could have hundreds of
+// tasks causing slow responses.
+// Suggestion: Add .limit(50) or add page/limit query params
+// similar to the browseTasks pagination implementation.
     const tasks = await collections
       .tasks()
       .find({ posterId: req.user._id })
