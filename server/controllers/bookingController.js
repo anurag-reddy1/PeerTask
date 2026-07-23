@@ -173,13 +173,12 @@ export async function respondToBooking(req, res, next) {
 
     // We claimed the slot on the listing — now mark the booking confirmed.
     await collections
-      .bookings()
+      .bookings()g
       .updateOne({ _id: bookingId }, { $set: { status: "confirmed" } });
 
     // Any other still-pending request whose slot overlaps the one we just
     // confirmed can never be confirmed itself — cancel it so it doesn't
-    // linger as "pending" forever (mirrors offer acceptance auto-declining
-    // other pending offers on the task).
+    // show as "pending" forever.
     await collections.bookings().updateMany(
       {
         listingId,
