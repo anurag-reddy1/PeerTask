@@ -23,6 +23,10 @@ export async function connectDb() {
   if (db) return db; // already connected — reuse it
   await client.connect();
   db = client.db(DB_NAME);
+  // Enforce email uniqueness at the database level regardless of whether the
+  // seed script has ever been run — the app-layer findOne-then-insert check in
+  // authController.register is a check-then-act race on its own.
+  await db.collection("Users").createIndex({ email: 1 }, { unique: true });
   console.log(`[db] Connected to MongoDB "${DB_NAME}" at ${MONGODB_URI}`);
   return db;
 }

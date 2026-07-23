@@ -41,8 +41,8 @@ export async function register(req, res, next) {
       throw new ApiError(400, "Password must be at least 6 characters.");
     }
 
-    // Enforce unique emails at the app layer (a unique index is also created in
-    // seed.js as a belt-and-braces guarantee).
+    // Enforce unique emails at the app layer (a unique index is also created
+    // on startup in connectDb() as a belt-and-braces guarantee).
     const existing = await collections.users().findOne({ email });
     if (existing) {
       throw new ApiError(409, "An account with that email already exists.");
