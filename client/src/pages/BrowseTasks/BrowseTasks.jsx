@@ -71,38 +71,46 @@ export default function BrowseTasks() {
           <Form onSubmit={applyFilters}>
             <Row className="g-3 align-items-end">
               <Col xs={6} md={2}>
-                <Form.Label>Min budget</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="0"
-                  value={filters.minBudget}
-                  onChange={set("minBudget")}
-                />
+                <Form.Group controlId="filter-min-budget">
+                  <Form.Label>Min budget</Form.Label>
+                  <Form.Control
+                    type="number"
+                    min="0"
+                    value={filters.minBudget}
+                    onChange={set("minBudget")}
+                  />
+                </Form.Group>
               </Col>
               <Col xs={6} md={2}>
-                <Form.Label>Max budget</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="0"
-                  value={filters.maxBudget}
-                  onChange={set("maxBudget")}
-                />
+                <Form.Group controlId="filter-max-budget">
+                  <Form.Label>Max budget</Form.Label>
+                  <Form.Control
+                    type="number"
+                    min="0"
+                    value={filters.maxBudget}
+                    onChange={set("maxBudget")}
+                  />
+                </Form.Group>
               </Col>
               <Col xs={12} md={3}>
-                <Form.Label>Location</Form.Label>
-                <Form.Control
-                  value={filters.location}
-                  onChange={set("location")}
-                  placeholder="e.g. Snell"
-                />
+                <Form.Group controlId="filter-location">
+                  <Form.Label>Location</Form.Label>
+                  <Form.Control
+                    value={filters.location}
+                    onChange={set("location")}
+                    placeholder="e.g. Snell"
+                  />
+                </Form.Group>
               </Col>
               <Col xs={12} md={3}>
-                <Form.Label>Available after</Form.Label>
-                <Form.Control
-                  type="datetime-local"
-                  value={filters.availableAfter}
-                  onChange={set("availableAfter")}
-                />
+                <Form.Group controlId="filter-available-after">
+                  <Form.Label>Available after</Form.Label>
+                  <Form.Control
+                    type="datetime-local"
+                    value={filters.availableAfter}
+                    onChange={set("availableAfter")}
+                  />
+                </Form.Group>
               </Col>
               <Col xs={12} md={2} className="d-flex gap-2">
                 <Button type="submit" variant="primary" size="sm">

@@ -9,7 +9,7 @@ export default function Pagination({ page, pages, total, onPage }) {
     <div className="d-flex align-items-center justify-content-center gap-3 mt-4">
       <Button
         size="sm"
-        variant="outline-secondary"
+        variant="outline-dark"
         disabled={page <= 1}
         onClick={() => onPage(page - 1)}
       >
@@ -20,7 +20,7 @@ export default function Pagination({ page, pages, total, onPage }) {
       </span>
       <Button
         size="sm"
-        variant="outline-secondary"
+        variant="outline-dark"
         disabled={page >= pages}
         onClick={() => onPage(page + 1)}
       >

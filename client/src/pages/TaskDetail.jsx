@@ -196,14 +196,14 @@ export default function TaskDetail() {
                         <>
                           <Button
                             size="sm"
-                            variant="primary"
+                            variant="success"
                             onClick={() => respond(o._id, "accepted")}
                           >
                             Accept
                           </Button>
                           <Button
                             size="sm"
-                            variant="outline-secondary"
+                            variant="outline-danger"
                             onClick={() => respond(o._id, "declined")}
                           >
                             Decline

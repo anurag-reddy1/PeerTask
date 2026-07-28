@@ -218,7 +218,7 @@ export default function ListingDetail() {
                     {isOwner && b.status === "pending" && (
                       <Button
                         size="sm"
-                        variant="primary"
+                        variant="success"
                         onClick={() => respond(b._id, "confirmed")}
                       >
                         Confirm
@@ -228,7 +228,7 @@ export default function ListingDetail() {
                       b.status !== "cancelled" && (
                         <Button
                           size="sm"
-                          variant="outline-secondary"
+                          variant="outline-danger"
                           onClick={() => respond(b._id, "cancelled")}
                         >
                           Cancel

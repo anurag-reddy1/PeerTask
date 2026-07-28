@@ -14,7 +14,12 @@ export default function AppNav() {
   }
 
   return (
-    <Navbar bg="white" expand="lg" className="border-bottom mb-4 shadow-sm">
+    <Navbar
+      bg="white"
+      expand="lg"
+      className="border-bottom mb-4 shadow-sm"
+      aria-label="Main navigation"
+    >
       <Container>
         <Navbar.Brand as={Link} to="/" className="fw-bold">
           Peer<span className="brand-accent">Task</span>
