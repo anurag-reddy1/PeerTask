@@ -63,29 +63,35 @@ export default function BrowseListings() {
           <Form onSubmit={applyFilters}>
             <Row className="g-3 align-items-end">
               <Col xs={12} md={3}>
-                <Form.Label>Category</Form.Label>
-                <Form.Control
-                  value={filters.category}
-                  onChange={set("category")}
-                  placeholder="e.g. Tutoring"
-                />
+                <Form.Group controlId="filter-category">
+                  <Form.Label>Category</Form.Label>
+                  <Form.Control
+                    value={filters.category}
+                    onChange={set("category")}
+                    placeholder="e.g. Tutoring"
+                  />
+                </Form.Group>
               </Col>
               <Col xs={6} md={3}>
-                <Form.Label>Max rate ($/hr)</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="0"
-                  value={filters.maxRate}
-                  onChange={set("maxRate")}
-                />
+                <Form.Group controlId="filter-max-rate">
+                  <Form.Label>Max rate ($/hr)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    min="0"
+                    value={filters.maxRate}
+                    onChange={set("maxRate")}
+                  />
+                </Form.Group>
               </Col>
               <Col xs={12} md={4}>
-                <Form.Label>Available after</Form.Label>
-                <Form.Control
-                  type="datetime-local"
-                  value={filters.availableAfter}
-                  onChange={set("availableAfter")}
-                />
+                <Form.Group controlId="filter-available-after">
+                  <Form.Label>Available after</Form.Label>
+                  <Form.Control
+                    type="datetime-local"
+                    value={filters.availableAfter}
+                    onChange={set("availableAfter")}
+                  />
+                </Form.Group>
               </Col>
               <Col xs={12} md={2} className="d-flex gap-2">
                 <Button type="submit" variant="primary" size="sm">

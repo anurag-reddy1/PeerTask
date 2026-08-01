@@ -1,6 +1,82 @@
-/* Global styles. Bootstrap 5 (imported in main.jsx) provides the base;
-   this file only holds tweaks that apply to the whole page. */
+/* Global styles. Bootstrap 5 (imported in main.jsx) provides the base. */
+
+:root {
+  --pt-brand: #4a6ee0;
+  --pt-brand-dark: #3558c4;
+  --pt-bg: #f6f7f9;
+  --pt-approve: #198754;
+  --pt-cancel: #dc3545;
+  --pt-font-body: "Inter", system-ui, sans-serif;
+  --pt-font-heading: "Poppins", system-ui, sans-serif;
+}
 
 body {
-  background-color: #f6f7f9;
+  background-color: var(--pt-bg);
+  font-family: var(--pt-font-body);
+  font-size: 0.9375rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-family: var(--pt-font-heading);
+}
+
+/* Bootstrap primary colour override to match brand */
+.btn-primary,
+.bg-primary {
+  --bs-btn-bg: var(--pt-brand);
+  --bs-btn-border-color: var(--pt-brand);
+  --bs-btn-hover-bg: var(--pt-brand-dark);
+  --bs-btn-hover-border-color: var(--pt-brand-dark);
+  --bs-btn-active-bg: var(--pt-brand-dark);
+}
+
+.badge.bg-primary {
+  background-color: var(--pt-brand) !important;
+}
+
+.brand-accent {
+  color: var(--pt-brand);
+}
+
+a {
+  color: var(--pt-brand-dark);
+}
+
+a:hover {
+  color: var(--pt-brand);
+}
+
+/* Warning badges need dark text — Bootstrap defaults to white which fails on yellow */
+.badge.bg-warning {
+  color: #000 !important;
+}
+
+/* Skip link — visually hidden until focused by keyboard */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--pt-brand);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+  transition: top 0.1s;
+}
+
+.skip-link:focus {
+  top: 0;
 }

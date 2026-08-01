@@ -8,8 +8,15 @@ import Nav from "./Nav/Nav.jsx";
 export default function Layout({ children }) {
   return (
     <>
-      <Nav />
-      <Container className="pb-5">{children}</Container>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+      <header>
+        <Nav />
+      </header>
+      <main id="main-content">
+        <Container className="pb-5">{children}</Container>
+      </main>
     </>
   );
 }

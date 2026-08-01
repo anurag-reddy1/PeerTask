@@ -9,8 +9,8 @@ export default function Home() {
   const { user } = useAuth();
   return (
     <div>
-      <div className="text-center py-4">
-        <h1 className="display-5 fw-bold">
+      <div className="home-hero text-center">
+        <h1 className="fw-bold">
           Peer<span className="brand-accent">Task</span>
         </h1>
         <p className="lead text-muted">

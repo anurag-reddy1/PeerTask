@@ -150,22 +150,28 @@ export default function CreateListing() {
             {slots.map((s, i) => (
               <Row className="g-2 align-items-end mb-2" key={i}>
                 <Col sm={5}>
-                  <Form.Label className="small">Start</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    value={s.start}
-                    onChange={(e) => setSlot(i, "start", e.target.value)}
-                    required
-                  />
+                  <Form.Group controlId={`slot-${i}-start`}>
+                    <Form.Label className="small">
+                      Slot {i + 1} start
+                    </Form.Label>
+                    <Form.Control
+                      type="datetime-local"
+                      value={s.start}
+                      onChange={(e) => setSlot(i, "start", e.target.value)}
+                      required
+                    />
+                  </Form.Group>
                 </Col>
                 <Col sm={5}>
-                  <Form.Label className="small">End</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    value={s.end}
-                    onChange={(e) => setSlot(i, "end", e.target.value)}
-                    required
-                  />
+                  <Form.Group controlId={`slot-${i}-end`}>
+                    <Form.Label className="small">Slot {i + 1} end</Form.Label>
+                    <Form.Control
+                      type="datetime-local"
+                      value={s.end}
+                      onChange={(e) => setSlot(i, "end", e.target.value)}
+                      required
+                    />
+                  </Form.Group>
                 </Col>
                 <Col sm={2}>
                   {slots.length > 1 && (
