@@ -15,9 +15,9 @@ export default function BrowseTasks() {
   const { user } = useAuth();
   // Filter form state (kept separate from the "applied" filters used to query).
   const [filters, setFilters] = useState({
+    search: "",
     minBudget: "",
     maxBudget: "",
-    location: "",
     availableAfter: "",
   });
   const [applied, setApplied] = useState({});
@@ -55,9 +55,9 @@ export default function BrowseTasks() {
 
   function clearFilters() {
     setFilters({
+      search: "",
       minBudget: "",
       maxBudget: "",
-      location: "",
       availableAfter: "",
     });
     setApplied({});
@@ -79,6 +79,16 @@ export default function BrowseTasks() {
         <Card.Body>
           <Form onSubmit={applyFilters}>
             <Row className="g-3 align-items-end">
+              <Col xs={12} md={3}>
+                <Form.Group controlId="filter-search">
+                  <Form.Label>Search</Form.Label>
+                  <Form.Control
+                    value={filters.search}
+                    onChange={set("search")}
+                    placeholder="Title or location"
+                  />
+                </Form.Group>
+              </Col>
               <Col xs={6} md={2}>
                 <Form.Group controlId="filter-min-budget">
                   <Form.Label>Min budget</Form.Label>
@@ -98,16 +108,6 @@ export default function BrowseTasks() {
                     min="0"
                     value={filters.maxBudget}
                     onChange={set("maxBudget")}
-                  />
-                </Form.Group>
-              </Col>
-              <Col xs={12} md={3}>
-                <Form.Group controlId="filter-location">
-                  <Form.Label>Location</Form.Label>
-                  <Form.Control
-                    value={filters.location}
-                    onChange={set("location")}
-                    placeholder="e.g. Snell"
                   />
                 </Form.Group>
               </Col>
