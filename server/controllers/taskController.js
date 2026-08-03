@@ -41,12 +41,10 @@ export async function browseTasks(req, res, next) {
     }
     if (Object.keys(budget).length) match.budget = budget;
 
-    // Case-insensitive partial location match.
-    if (req.query.location) {
-      match.location = {
-        $regex: String(req.query.location).trim(),
-        $options: "i",
-      };
+    // Case-insensitive search across title and location.
+    if (req.query.search) {
+      const regex = { $regex: String(req.query.search).trim(), $options: "i" };
+      match.$or = [{ title: regex }, { location: regex }];
     }
 
     // availableAfter: only tasks whose time window starts on/after the date.
