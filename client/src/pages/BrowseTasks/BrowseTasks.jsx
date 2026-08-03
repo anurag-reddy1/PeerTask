@@ -9,8 +9,10 @@ import { api, qs } from "../../services/api.js";
 import { fmtRange } from "../../services/fmt.js";
 import ErrorMessage from "../../components/ErrorMessage.jsx";
 import Pagination from "../../components/Pagination.jsx";
+import { useAuth } from "../../hooks/useAuth.jsx";
 
 export default function BrowseTasks() {
+  const { user } = useAuth();
   // Filter form state (kept separate from the "applied" filters used to query).
   const [filters, setFilters] = useState({
     minBudget: "",
@@ -64,7 +66,14 @@ export default function BrowseTasks() {
 
   return (
     <div>
-      <h1 className="h3 mb-3">Browse Tasks</h1>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h1 className="h3 mb-0">Browse Tasks</h1>
+        {user && (
+          <Button as={Link} to="/tasks/new" variant="primary" size="sm">
+            Post a Task
+          </Button>
+        )}
+      </div>
 
       <Card className="mb-4 shadow-sm">
         <Card.Body>

@@ -65,6 +65,9 @@ export default function Register() {
               minLength={6}
               required
             />
+            <Form.Text className="text-muted">
+              Must be at least 6 characters.
+            </Form.Text>
           </Form.Group>
           <Form.Group className="mb-3" controlId="reg-school">
             <Form.Label>School</Form.Label>
