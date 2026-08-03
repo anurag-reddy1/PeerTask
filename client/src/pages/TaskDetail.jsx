@@ -215,7 +215,7 @@ export default function TaskDetail() {
                       o.status === "pending" && (
                         <Button
                           size="sm"
-                          variant="outline-secondary"
+                          variant="outline-danger"
                           onClick={() => withdraw(o._id)}
                         >
                           Withdraw
