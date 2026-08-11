@@ -6,6 +6,19 @@ import { Card, Form, Button, Row, Col } from "react-bootstrap";
 import { api } from "../services/api.js";
 import ErrorMessage from "../components/ErrorMessage.jsx";
 
+// Given a datetime-local string, return one `hours` later in the same
+// yyyy-MM-ddThh:mm format datetime-local inputs expect.
+function addHours(datetimeLocal, hours) {
+  if (!datetimeLocal) return "";
+  const d = new Date(datetimeLocal);
+  if (Number.isNaN(d.getTime())) return "";
+  d.setHours(d.getHours() + hours);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}`;
+}
+
 export default function CreateListing() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -21,9 +34,21 @@ export default function CreateListing() {
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
+  // Usability fix: when a participant sets a slot's start time and hasn't
+  // already set an end time, auto-suggest start + 1hr instead of leaving both
+  // fields blank. If they've already typed an end time, don't overwrite it.
   function setSlot(i, key, value) {
     const next = slots.slice();
-    next[i] = { ...next[i], [key]: value };
+    if (key === "start") {
+      const currentEnd = next[i].end;
+      next[i] = {
+        ...next[i],
+        start: value,
+        end: currentEnd || addHours(value, 1),
+      };
+    } else {
+      next[i] = { ...next[i], [key]: value };
+    }
     setSlots(next);
   }
   function addSlot() {
@@ -187,6 +212,10 @@ export default function CreateListing() {
                 </Col>
               </Row>
             ))}
+            <Form.Text className="text-muted d-block mb-2">
+              Setting a start time auto-fills the end time 1 hour later —
+              adjust either field as needed.
+            </Form.Text>
             <Button
               type="button"
               variant="outline-secondary"

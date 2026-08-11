@@ -9,7 +9,13 @@ import {
   requireNonEmptyString,
   requirePositiveNumber,
   requireTimeRange,
+  requireOneOf,
 } from "../middleware/validation.js";
+
+// Usability fix (issue: the Budget field didn't say whether it was per hour,
+// per day, or a flat total). Optional on input for backward compatibility with
+// any pre-existing clients/tests that don't send it — defaults to "total".
+const BUDGET_UNITS = ["total", "hourly", "daily"];
 
 // ---------------------------------------------------------------------------
 // GET /api/tasks — browse OPEN tasks via an aggregation pipeline.
@@ -108,6 +114,7 @@ export async function browseTasks(req, res, next) {
           title: 1,
           description: 1,
           budget: 1,
+          budgetUnit: 1,
           timeWindow: 1,
           location: 1,
           status: 1,
@@ -151,6 +158,11 @@ export async function createTask(req, res, next) {
       "description"
     );
     const budget = requirePositiveNumber(req.body.budget, "budget");
+    // Optional on input; defaults to "total" so older clients/tests that don't
+    // send it keep working exactly as before.
+    const budgetUnit = req.body.budgetUnit
+      ? requireOneOf(req.body.budgetUnit, BUDGET_UNITS, "budgetUnit")
+      : "total";
     const timeWindow = requireTimeRange(req.body.timeWindow, "timeWindow");
     const location = requireNonEmptyString(req.body.location, "location");
 
@@ -158,6 +170,7 @@ export async function createTask(req, res, next) {
       title,
       description,
       budget,
+      budgetUnit,
       timeWindow,
       location,
       status: "open",
@@ -243,6 +256,12 @@ export async function updateTask(req, res, next) {
       );
     if (req.body.budget !== undefined)
       update.budget = requirePositiveNumber(req.body.budget, "budget");
+    if (req.body.budgetUnit !== undefined)
+      update.budgetUnit = requireOneOf(
+        req.body.budgetUnit,
+        BUDGET_UNITS,
+        "budgetUnit"
+      );
     if (req.body.location !== undefined)
       update.location = requireNonEmptyString(req.body.location, "location");
     if (req.body.timeWindow !== undefined)

@@ -18,6 +18,22 @@ import { fmtRange, fmtDate, statusVariant } from "../services/fmt.js";
 import { useAuth } from "../hooks/useAuth.jsx";
 import ErrorMessage from "../components/ErrorMessage.jsx";
 
+// Usability fix (issue: participants had to manually type start/end times for
+// a booking, with no guarantee it fit the listing's availability). A slot is
+// considered fully booked — and hidden from the picker — only when an existing
+// CONFIRMED booking completely covers it (start <= slot.start && end >=
+// slot.end). Partially-booked slots still show; the server remains the source
+// of truth for any overlap once a request is actually submitted.
+function isSlotFullyBooked(slot, confirmedSlots) {
+  const s = new Date(slot.start).getTime();
+  const e = new Date(slot.end).getTime();
+  return (confirmedSlots || []).some((c) => {
+    const cs = new Date(c.start).getTime();
+    const ce = new Date(c.end).getTime();
+    return cs <= s && ce >= e;
+  });
+}
+
 export default function ListingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -25,7 +41,9 @@ export default function ListingDetail() {
 
   const [listing, setListing] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [slot, setSlot] = useState({ start: "", end: "" });
+  // Replaces the old free-typed { start, end } state: participants now pick
+  // the index of one of the listing's own available slots.
+  const [selectedSlot, setSelectedSlot] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -58,12 +76,24 @@ export default function ListingDetail() {
 
   const isOwner = user && listing.providerId === user._id;
 
+  // Only slots that aren't already fully booked are offered to the participant.
+  const availableSlots = (listing.availabilitySlots || []).filter(
+    (s) => !isSlotFullyBooked(s, listing.confirmedSlots)
+  );
+
   async function requestBooking(e) {
     e.preventDefault();
     setError(null);
+    if (selectedSlot === "") {
+      setError({ status: 400, message: "Please choose an available time slot." });
+      return;
+    }
+    const chosen = availableSlots[Number(selectedSlot)];
     try {
-      await api.post(`/api/listings/${id}/bookings`, { requestedSlot: slot });
-      setSlot({ start: "", end: "" });
+      await api.post(`/api/listings/${id}/bookings`, {
+        requestedSlot: { start: chosen.start, end: chosen.end },
+      });
+      setSelectedSlot("");
       await load();
     } catch (err) {
       // A 409 here means the slot overlaps an already-confirmed booking. Show a
@@ -148,37 +178,41 @@ export default function ListingDetail() {
               Request a booking
             </Card.Title>
             <ErrorMessage error={error} />
-            <Form onSubmit={requestBooking}>
-              <Row className="g-2 align-items-end">
-                <Col sm={5}>
-                  <Form.Label>Start</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    value={slot.start}
-                    onChange={(e) =>
-                      setSlot({ ...slot, start: e.target.value })
-                    }
-                    required
-                  />
-                </Col>
-                <Col sm={5}>
-                  <Form.Label>End</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    value={slot.end}
-                    onChange={(e) => setSlot({ ...slot, end: e.target.value })}
-                    required
-                  />
-                </Col>
-                <Col sm={2}>
-                  <Button type="submit" variant="primary">
-                    Request
-                  </Button>
-                </Col>
-              </Row>
-            </Form>
+            {availableSlots.length === 0 ? (
+              <p className="text-muted mb-0">
+                No open time slots right now — check back later.
+              </p>
+            ) : (
+              <Form onSubmit={requestBooking}>
+                <Row className="g-2 align-items-end">
+                  <Col sm={9}>
+                    <Form.Label>Choose an available time slot</Form.Label>
+                    <Form.Select
+                      value={selectedSlot}
+                      onChange={(e) => setSelectedSlot(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled>
+                        Select a slot…
+                      </option>
+                      {availableSlots.map((s, i) => (
+                        <option key={i} value={i}>
+                          {fmtRange(s)}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Col>
+                  <Col sm={3}>
+                    <Button type="submit" variant="primary">
+                      Request
+                    </Button>
+                  </Col>
+                </Row>
+              </Form>
+            )}
             <p className="text-muted small mt-2 mb-0">
-              Your slot must fall inside one of the availability windows above.
+              Only currently-open time slots are shown here — fully booked
+              windows are hidden automatically.
             </p>
           </Card.Body>
         </Card>

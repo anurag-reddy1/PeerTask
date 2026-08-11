@@ -11,6 +11,16 @@ import ErrorMessage from "../../components/ErrorMessage.jsx";
 import Pagination from "../../components/Pagination.jsx";
 import { useAuth } from "../../hooks/useAuth.jsx";
 
+// Usability fix (issue: the Budget badge didn't say whether it was per hour,
+// per day, or a flat total). Falls back to a bare "$X" for tasks created
+// before this field existed (budgetUnit undefined) so old seed data still
+// renders correctly.
+function formatBudget(t) {
+  if (t.budgetUnit === "hourly") return `$${t.budget}/hr`;
+  if (t.budgetUnit === "daily") return `$${t.budget}/day`;
+  return `$${t.budget}`;
+}
+
 export default function BrowseTasks() {
   const { user } = useAuth();
   // Filter form state (kept separate from the "applied" filters used to query).
@@ -156,7 +166,7 @@ export default function BrowseTasks() {
                     <Card.Title className="h6 mb-1">
                       <Link to={`/tasks/${t._id}`}>{t.title}</Link>
                     </Card.Title>
-                    <Badge bg="primary">${t.budget}</Badge>
+                    <Badge bg="primary">{formatBudget(t)}</Badge>
                   </div>
                   <Card.Text className="text-muted small clamp">
                     {t.description}
