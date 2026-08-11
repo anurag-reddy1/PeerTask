@@ -159,8 +159,10 @@ export default function BrowseListings() {
           <Form onSubmit={applyFilters}>
             <Row className="g-3 align-items-end">
               <Col xs={12} md={3}>
-                <Form.Group controlId="filter-category">
-                  <Form.Label>Category</Form.Label>
+                <Form.Group>
+                  <Form.Label htmlFor="category-dropdown-toggle">
+                    Category
+                  </Form.Label>
                   {/* autoClose="outside" so clicking Prev/Next inside the menu
                       doesn't close it — only picking a category or clicking
                       away does (handled manually in selectCategory). */}
@@ -434,6 +436,7 @@ export default function BrowseListings() {
                   </div>
                   <Form.Check
                     type="checkbox"
+                    id={`compare-${l._id}`}
                     label="Compare"
                     className="small mt-2 mb-0"
                     checked={compareIds.includes(l._id)}
