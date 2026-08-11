@@ -20,10 +20,8 @@ import ErrorMessage from "../components/ErrorMessage.jsx";
 
 // Usability fix (issue: participants had to manually type start/end times for
 // a booking, with no guarantee it fit the listing's availability). A slot is
-// considered fully booked — and hidden from the picker — only when an existing
-// CONFIRMED booking completely covers it (start <= slot.start && end >=
-// slot.end). Partially-booked slots still show; the server remains the source
-// of truth for any overlap once a request is actually submitted.
+// considered fully booked — and excluded — only when an existing CONFIRMED
+// booking completely covers it (start <= slot.start && end >= slot.end).
 function isSlotFullyBooked(slot, confirmedSlots) {
   const s = new Date(slot.start).getTime();
   const e = new Date(slot.end).getTime();
@@ -34,6 +32,49 @@ function isSlotFullyBooked(slot, confirmedSlots) {
   });
 }
 
+// Follow-up refinement: rather than booking one whole (often multi-day) slot
+// in one click, the participant now picks a specific DATE from a dropdown
+// (built from the open slots) and types the exact TIME themselves. Enumerates
+// every calendar day covered by the open slots, deduplicated and sorted.
+function enumerateDates(slots) {
+  const seen = new Set();
+  (slots || []).forEach((s) => {
+    const cursor = new Date(s.start);
+    cursor.setHours(0, 0, 0, 0);
+    const end = new Date(s.end);
+    // Safety cap so a data error (e.g. a multi-year slot) can't hang the UI.
+    let guard = 0;
+    while (cursor <= end && guard < 366) {
+      seen.add(cursor.toISOString().slice(0, 10)); // yyyy-mm-dd
+      cursor.setDate(cursor.getDate() + 1);
+      guard++;
+    }
+  });
+  return Array.from(seen).sort();
+}
+
+// Pretty-print a yyyy-mm-dd string without timezone surprises.
+function formatDateLabel(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+// Add `hours` to a "HH:MM" time string, wrapping within the same day (24h
+// clock). Simple by design — crossing midnight just wraps back to 00:xx
+// rather than rolling onto the next calendar date, since the date is picked
+// separately here.
+function addHoursToTime(time, hours) {
+  if (!time) return "";
+  const [h, m] = time.split(":").map(Number);
+  const total = (h + hours) % 24;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(total)}:${pad(m)}`;
+}
+
 export default function ListingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -41,9 +82,10 @@ export default function ListingDetail() {
 
   const [listing, setListing] = useState(null);
   const [bookings, setBookings] = useState([]);
-  // Replaces the old free-typed { start, end } state: participants now pick
-  // the index of one of the listing's own available slots.
-  const [selectedSlot, setSelectedSlot] = useState("");
+  // Date comes from a dropdown; start/end time are typed manually.
+  const [selectedDate, setSelectedDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -76,28 +118,44 @@ export default function ListingDetail() {
 
   const isOwner = user && listing.providerId === user._id;
 
-  // Only slots that aren't already fully booked are offered to the participant.
+  // Only slots that aren't already fully booked feed the date dropdown.
   const availableSlots = (listing.availabilitySlots || []).filter(
     (s) => !isSlotFullyBooked(s, listing.confirmedSlots)
   );
+  const availableDates = enumerateDates(availableSlots);
+
+  function setStart(e) {
+    const value = e.target.value;
+    setStartTime(value);
+    // Auto-suggest an end time 1 hour later, same pattern as the other forms,
+    // but only if the participant hasn't already set one themselves.
+    setEndTime((prev) => (prev ? prev : addHoursToTime(value, 1)));
+  }
 
   async function requestBooking(e) {
     e.preventDefault();
     setError(null);
-    if (selectedSlot === "") {
-      setError({ status: 400, message: "Please choose an available time slot." });
+    if (!selectedDate || !startTime || !endTime) {
+      setError({
+        status: 400,
+        message: "Please choose a date and both a start and end time.",
+      });
       return;
     }
-    const chosen = availableSlots[Number(selectedSlot)];
+    const requestedSlot = {
+      start: `${selectedDate}T${startTime}`,
+      end: `${selectedDate}T${endTime}`,
+    };
     try {
-      await api.post(`/api/listings/${id}/bookings`, {
-        requestedSlot: { start: chosen.start, end: chosen.end },
-      });
-      setSelectedSlot("");
+      await api.post(`/api/listings/${id}/bookings`, { requestedSlot });
+      setSelectedDate("");
+      setStartTime("");
+      setEndTime("");
       await load();
     } catch (err) {
-      // A 409 here means the slot overlaps an already-confirmed booking. Show a
-      // friendly, actionable message instead of a raw request failure.
+      // A 409 here means the slot overlaps an already-confirmed booking; a
+      // 400 means the typed time fell outside the listing's availability.
+      // Both are already friendly messages from the server — just show them.
       if (err.status === 409) {
         setError({
           status: 409,
@@ -178,42 +236,62 @@ export default function ListingDetail() {
               Request a booking
             </Card.Title>
             <ErrorMessage error={error} />
-            {availableSlots.length === 0 ? (
+            {availableDates.length === 0 ? (
               <p className="text-muted mb-0">
-                No open time slots right now — check back later.
+                No open dates right now — check back later.
               </p>
             ) : (
               <Form onSubmit={requestBooking}>
                 <Row className="g-2 align-items-end">
-                  <Col sm={9}>
-                    <Form.Label>Choose an available time slot</Form.Label>
+                  <Col sm={4}>
+                    <Form.Label>Date</Form.Label>
                     <Form.Select
-                      value={selectedSlot}
-                      onChange={(e) => setSelectedSlot(e.target.value)}
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
                       required
                     >
                       <option value="" disabled>
-                        Select a slot…
+                        Select a date…
                       </option>
-                      {availableSlots.map((s, i) => (
-                        <option key={i} value={i}>
-                          {fmtRange(s)}
+                      {availableDates.map((d) => (
+                        <option key={d} value={d}>
+                          {formatDateLabel(d)}
                         </option>
                       ))}
                     </Form.Select>
                   </Col>
                   <Col sm={3}>
+                    <Form.Label>Start time</Form.Label>
+                    <Form.Control
+                      type="time"
+                      value={startTime}
+                      onChange={setStart}
+                      required
+                    />
+                  </Col>
+                  <Col sm={3}>
+                    <Form.Label>End time</Form.Label>
+                    <Form.Control
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      required
+                    />
+                  </Col>
+                  <Col sm={2}>
                     <Button type="submit" variant="primary">
                       Request
                     </Button>
                   </Col>
                 </Row>
+                <Form.Text className="text-muted d-block mt-2">
+                  End time auto-fills 1 hour after the start — adjust either
+                  as needed. Pick a date the provider has listed as open
+                  above; the exact time just needs to fall within their
+                  availability window that day.
+                </Form.Text>
               </Form>
             )}
-            <p className="text-muted small mt-2 mb-0">
-              Only currently-open time slots are shown here — fully booked
-              windows are hidden automatically.
-            </p>
           </Card.Body>
         </Card>
       )}

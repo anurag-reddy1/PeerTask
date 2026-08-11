@@ -4,7 +4,16 @@
 import "./BrowseTasks.css";
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Row, Col, Card, Form, Button, Badge, Spinner } from "react-bootstrap";
+import {
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Badge,
+  Spinner,
+  ListGroup,
+} from "react-bootstrap";
 import { api, qs } from "../../services/api.js";
 import { fmtRange } from "../../services/fmt.js";
 import ErrorMessage from "../../components/ErrorMessage.jsx";
@@ -21,6 +30,9 @@ function formatBudget(t) {
   return `$${t.budget}`;
 }
 
+// How many location suggestions to show under the Search field at once.
+const MAX_SUGGESTIONS = 6;
+
 export default function BrowseTasks() {
   const { user } = useAuth();
   // Filter form state (kept separate from the "applied" filters used to query).
@@ -36,6 +48,13 @@ export default function BrowseTasks() {
   const [data, setData] = useState({ items: [], total: 0, pages: 0, page: 1 });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Usability fix (asked for directly): as the participant types in Search,
+  // suggest matching task LOCATIONS in a dropdown (e.g. typing "was" suggests
+  // "Washington DC"), rather than making them type the whole thing blind.
+  // Reuses the existing browse endpoint — no backend change needed.
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const set = (k) => (e) => setFilters({ ...filters, [k]: e.target.value });
 
@@ -57,6 +76,37 @@ export default function BrowseTasks() {
     load();
   }, [load]);
 
+  // Debounced location-suggestion lookup, keyed on the typed search text.
+  useEffect(() => {
+    const term = filters.search.trim();
+    if (term.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      try {
+        const res = await api.get(
+          `/api/tasks${qs({ search: term, limit: 20 })}`
+        );
+        // The endpoint matches title OR location — narrow down to genuine
+        // location matches here so the dropdown only suggests places.
+        const locs = Array.from(
+          new Set(
+            (res.items || [])
+              .map((t) => t.location)
+              .filter(
+                (loc) => loc && loc.toLowerCase().includes(term.toLowerCase())
+              )
+          )
+        ).slice(0, MAX_SUGGESTIONS);
+        setSuggestions(locs);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [filters.search]);
+
   function applyFilters(e) {
     e.preventDefault();
     setPage(1); // reset to first page when filters change
@@ -72,6 +122,16 @@ export default function BrowseTasks() {
     });
     setApplied({});
     setPage(1);
+    setSuggestions([]);
+  }
+
+  // Selecting a suggestion applies the filter immediately, rather than
+  // requiring a separate click on Apply — that's the point of an autocomplete.
+  function selectSuggestion(loc) {
+    setFilters((f) => ({ ...f, search: loc }));
+    setApplied((a) => ({ ...a, search: loc }));
+    setPage(1);
+    setShowSuggestions(false);
   }
 
   return (
@@ -90,13 +150,42 @@ export default function BrowseTasks() {
           <Form onSubmit={applyFilters}>
             <Row className="g-3 align-items-end">
               <Col xs={12} md={3}>
-                <Form.Group controlId="filter-search">
+                <Form.Group
+                  controlId="filter-search"
+                  className="position-relative"
+                >
                   <Form.Label>Search</Form.Label>
                   <Form.Control
                     value={filters.search}
                     onChange={set("search")}
+                    onFocus={() => setShowSuggestions(true)}
+                    // Delay hiding so a click on a suggestion registers before
+                    // the input's blur handler would otherwise hide the list.
+                    onBlur={() =>
+                      setTimeout(() => setShowSuggestions(false), 150)
+                    }
                     placeholder="Title or location"
+                    autoComplete="off"
                   />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <ListGroup
+                      className="position-absolute shadow-sm"
+                      style={{ zIndex: 10, width: "100%", top: "100%" }}
+                    >
+                      {suggestions.map((loc) => (
+                        <ListGroup.Item
+                          key={loc}
+                          action
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // keep focus so onBlur doesn't race us
+                            selectSuggestion(loc);
+                          }}
+                        >
+                          📍 {loc}
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  )}
                 </Form.Group>
               </Col>
               <Col xs={6} md={2}>

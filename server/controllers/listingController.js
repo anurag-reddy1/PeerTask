@@ -65,6 +65,26 @@ function requireValidAvailability(value) {
 }
 
 // ---------------------------------------------------------------------------
+// GET /api/listings/categories — distinct category list, sorted alphabetically.
+//
+// Usability fix (issue: participants had no way to see what categories even
+// exist while browsing — the filter was a free-text box). Powers a category
+// picker on the client that pages through the full list 5 at a time. Kept as
+// its own lightweight endpoint (a single `distinct` query) rather than baking
+// it into the main browse response, since the category list rarely changes
+// and doesn't need to be refetched on every filter/page change.
+// ---------------------------------------------------------------------------
+export async function listCategories(req, res, next) {
+  try {
+    const categories = await collections.listings().distinct("category");
+    categories.sort((a, b) => a.localeCompare(b));
+    res.json({ categories });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // GET /api/listings — browse AVAILABLE listings via an aggregation pipeline.
 //
 // Uses an aggregation pipeline: filters, joins a pending-booking count, joins

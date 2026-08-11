@@ -9,6 +9,7 @@ import {
   updateListing,
   deleteListing,
   myListings,
+  listCategories,
 } from "../controllers/listingController.js";
 import {
   requestBooking,
@@ -18,8 +19,11 @@ import {
 
 const router = Router();
 
-// "My" collection — before "/:id".
+// "My" collection and other static paths — all before "/:id" so they aren't
+// captured as an id param. "/categories" added for the category picker
+// dropdown on Browse Listings.
 router.get("/mine/owned", authGuard, myListings); // My Listings
+router.get("/categories", listCategories); // distinct category list — public
 
 // Listings
 router.get("/", browseListings); // browse (aggregation) — public

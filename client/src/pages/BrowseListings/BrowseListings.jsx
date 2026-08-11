@@ -4,7 +4,16 @@
 import "./BrowseListings.css";
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Row, Col, Card, Form, Button, Badge, Spinner } from "react-bootstrap";
+import {
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Badge,
+  Spinner,
+  Dropdown,
+} from "react-bootstrap";
 import { api, qs } from "../../services/api.js";
 import { fmtRange } from "../../services/fmt.js";
 import ErrorMessage from "../../components/ErrorMessage.jsx";
@@ -14,6 +23,11 @@ import Pagination from "../../components/Pagination.jsx";
 // several airport-ride options). Cap comparisons at 3 so the table stays
 // readable — this is a soft UX limit, not a server-enforced rule.
 const MAX_COMPARE = 3;
+
+// Usability fix (asked for directly): the Category filter is now a dropdown
+// of every distinct category, alphabetical, paged 5 at a time — instead of a
+// free-text box where you had to already know a category's exact spelling.
+const CATEGORY_PAGE_SIZE = 5;
 
 export default function BrowseListings() {
   const [filters, setFilters] = useState({
@@ -31,6 +45,11 @@ export default function BrowseListings() {
   // Compare feature state.
   const [compareIds, setCompareIds] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
+
+  // Category picker dropdown state.
+  const [categories, setCategories] = useState([]);
+  const [categoryPage, setCategoryPage] = useState(0);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
 
   // Usability fix (issue: browsing that turned up nothing showed no
   // suggestions). When the filtered list is empty, fetch a small, unfiltered
@@ -58,6 +77,14 @@ export default function BrowseListings() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Fetch the full category list once on mount for the picker dropdown.
+  useEffect(() => {
+    api
+      .get("/api/listings/categories")
+      .then((res) => setCategories(res.categories || []))
+      .catch(() => setCategories([]));
+  }, []);
 
   // Fetch unfiltered suggestions only when the current (filtered) result set
   // is empty. Ignores category/maxRate/availableAfter entirely on purpose —
@@ -109,6 +136,20 @@ export default function BrowseListings() {
     setShowCompare(false);
   }
 
+  function selectCategory(value) {
+    setFilters({ ...filters, category: value });
+    setShowCategoryMenu(false);
+  }
+
+  const categoryTotalPages = Math.max(
+    1,
+    Math.ceil(categories.length / CATEGORY_PAGE_SIZE)
+  );
+  const pagedCategories = categories.slice(
+    categoryPage * CATEGORY_PAGE_SIZE,
+    categoryPage * CATEGORY_PAGE_SIZE + CATEGORY_PAGE_SIZE
+  );
+
   return (
     <div>
       <h1 className="h3 mb-3">Browse Listings</h1>
@@ -120,11 +161,83 @@ export default function BrowseListings() {
               <Col xs={12} md={3}>
                 <Form.Group controlId="filter-category">
                   <Form.Label>Category</Form.Label>
-                  <Form.Control
-                    value={filters.category}
-                    onChange={set("category")}
-                    placeholder="e.g. Tutoring"
-                  />
+                  {/* autoClose="outside" so clicking Prev/Next inside the menu
+                      doesn't close it — only picking a category or clicking
+                      away does (handled manually in selectCategory). */}
+                  <Dropdown
+                    show={showCategoryMenu}
+                    onToggle={(isOpen) => setShowCategoryMenu(isOpen)}
+                    autoClose="outside"
+                  >
+                    <Dropdown.Toggle
+                      variant="outline-secondary"
+                      className="w-100 text-start"
+                      id="category-dropdown-toggle"
+                    >
+                      {filters.category || "All categories"}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu style={{ minWidth: "230px" }}>
+                      <Dropdown.Item
+                        active={filters.category === ""}
+                        onClick={() => selectCategory("")}
+                      >
+                        All categories
+                      </Dropdown.Item>
+                      {categories.length === 0 ? (
+                        <Dropdown.Item disabled>Loading…</Dropdown.Item>
+                      ) : (
+                        <>
+                          <Dropdown.Divider />
+                          {pagedCategories.map((c) => (
+                            <Dropdown.Item
+                              key={c}
+                              active={filters.category === c}
+                              onClick={() => selectCategory(c)}
+                            >
+                              {c}
+                            </Dropdown.Item>
+                          ))}
+                          {categoryTotalPages > 1 && (
+                            <>
+                              <Dropdown.Divider />
+                              <div className="d-flex justify-content-between align-items-center px-2">
+                                <Button
+                                  size="sm"
+                                  variant="link"
+                                  className="px-1"
+                                  disabled={categoryPage === 0}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCategoryPage((p) => p - 1);
+                                  }}
+                                >
+                                  ‹ Prev
+                                </Button>
+                                <span className="small text-muted">
+                                  Page {categoryPage + 1} of{" "}
+                                  {categoryTotalPages}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="link"
+                                  className="px-1"
+                                  disabled={
+                                    categoryPage >= categoryTotalPages - 1
+                                  }
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCategoryPage((p) => p + 1);
+                                  }}
+                                >
+                                  Next ›
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </Dropdown.Menu>
+                  </Dropdown>
                 </Form.Group>
               </Col>
               <Col xs={6} md={3}>
