@@ -110,7 +110,10 @@ export default function CreateTask() {
             <Col sm={4}>
               <Form.Group className="mb-3" controlId="task-budget-unit">
                 <Form.Label>Budget type</Form.Label>
-                <Form.Select value={form.budgetUnit} onChange={set("budgetUnit")}>
+                <Form.Select
+                  value={form.budgetUnit}
+                  onChange={set("budgetUnit")}
+                >
                   <option value="total">Total (flat amount)</option>
                   <option value="hourly">Per hour</option>
                   <option value="daily">Per day</option>

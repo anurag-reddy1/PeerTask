@@ -213,8 +213,8 @@ export default function CreateListing() {
               </Row>
             ))}
             <Form.Text className="text-muted d-block mb-2">
-              Setting a start time auto-fills the end time 1 hour later —
-              adjust either field as needed.
+              Setting a start time auto-fills the end time 1 hour later — adjust
+              either field as needed.
             </Form.Text>
             <Button
               type="button"

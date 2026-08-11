@@ -276,9 +276,9 @@ export default function ListingDetail() {
                   </Col>
                 </Row>
                 <Form.Text className="text-muted d-block mt-2">
-                  End time auto-fills 1 hour after the start — adjust either
-                  as needed. Only dates the provider has actually listed as
-                  open appear above.
+                  End time auto-fills 1 hour after the start — adjust either as
+                  needed. Only dates the provider has actually listed as open
+                  appear above.
                 </Form.Text>
               </Form>
             )}
