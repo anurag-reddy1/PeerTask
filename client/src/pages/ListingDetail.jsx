@@ -32,41 +32,32 @@ function isSlotFullyBooked(slot, confirmedSlots) {
   });
 }
 
-// Follow-up refinement: rather than booking one whole (often multi-day) slot
-// in one click, the participant now picks a specific DATE from a dropdown
-// (built from the open slots) and types the exact TIME themselves. Enumerates
-// every calendar day covered by the open slots, deduplicated and sorted.
-function enumerateDates(slots) {
-  const seen = new Set();
-  (slots || []).forEach((s) => {
-    const cursor = new Date(s.start);
-    cursor.setHours(0, 0, 0, 0);
-    const end = new Date(s.end);
-    // Safety cap so a data error (e.g. a multi-year slot) can't hang the UI.
-    let guard = 0;
-    while (cursor <= end && guard < 366) {
-      seen.add(cursor.toISOString().slice(0, 10)); // yyyy-mm-dd
-      cursor.setDate(cursor.getDate() + 1);
-      guard++;
-    }
-  });
-  return Array.from(seen).sort();
+// One dropdown entry per availability slot — its date is the slot's own
+// start date (matching what's already shown up in the Availability list
+// above), NOT every individual day inside a wide multi-week slot. This is
+// deliberately simple: a slot spanning Sep 10 → Oct 30 shows up once, as
+// "Sep 10, 2026", rather than exploding into 50 separate days.
+function buildDateOptions(slots) {
+  return (slots || []).map((slot, index) => ({ index, slot }));
 }
 
-// Pretty-print a yyyy-mm-dd string without timezone surprises.
-function formatDateLabel(dateStr) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+function formatDateLabel(dateLike) {
+  return new Date(dateLike).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-// Add `hours` to a "HH:MM" time string, wrapping within the same day (24h
-// clock). Simple by design — crossing midnight just wraps back to 00:xx
-// rather than rolling onto the next calendar date, since the date is picked
-// separately here.
+// yyyy-mm-dd for combining with a manually-typed "HH:MM" time, in local time
+// (matches how availability slots were originally entered via datetime-local).
+function toDateStr(dateLike) {
+  const d = new Date(dateLike);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// Add `hours` to a "HH:MM" time string, wrapping within the same day.
 function addHoursToTime(time, hours) {
   if (!time) return "";
   const [h, m] = time.split(":").map(Number);
@@ -82,8 +73,8 @@ export default function ListingDetail() {
 
   const [listing, setListing] = useState(null);
   const [bookings, setBookings] = useState([]);
-  // Date comes from a dropdown; start/end time are typed manually.
-  const [selectedDate, setSelectedDate] = useState("");
+  // A slot is chosen by index (drives the date shown); start/end time typed manually.
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [error, setError] = useState(null);
@@ -122,33 +113,33 @@ export default function ListingDetail() {
   const availableSlots = (listing.availabilitySlots || []).filter(
     (s) => !isSlotFullyBooked(s, listing.confirmedSlots)
   );
-  const availableDates = enumerateDates(availableSlots);
+  const dateOptions = buildDateOptions(availableSlots);
 
   function setStart(e) {
     const value = e.target.value;
     setStartTime(value);
-    // Auto-suggest an end time 1 hour later, same pattern as the other forms,
-    // but only if the participant hasn't already set one themselves.
     setEndTime((prev) => (prev ? prev : addHoursToTime(value, 1)));
   }
 
   async function requestBooking(e) {
     e.preventDefault();
     setError(null);
-    if (!selectedDate || !startTime || !endTime) {
+    if (selectedSlotIndex === "" || !startTime || !endTime) {
       setError({
         status: 400,
         message: "Please choose a date and both a start and end time.",
       });
       return;
     }
+    const chosenSlot = availableSlots[Number(selectedSlotIndex)];
+    const dateStr = toDateStr(chosenSlot.start);
     const requestedSlot = {
-      start: `${selectedDate}T${startTime}`,
-      end: `${selectedDate}T${endTime}`,
+      start: `${dateStr}T${startTime}`,
+      end: `${dateStr}T${endTime}`,
     };
     try {
       await api.post(`/api/listings/${id}/bookings`, { requestedSlot });
-      setSelectedDate("");
+      setSelectedSlotIndex("");
       setStartTime("");
       setEndTime("");
       await load();
@@ -236,7 +227,7 @@ export default function ListingDetail() {
               Request a booking
             </Card.Title>
             <ErrorMessage error={error} />
-            {availableDates.length === 0 ? (
+            {dateOptions.length === 0 ? (
               <p className="text-muted mb-0">
                 No open dates right now — check back later.
               </p>
@@ -246,16 +237,16 @@ export default function ListingDetail() {
                   <Col sm={4}>
                     <Form.Label>Date</Form.Label>
                     <Form.Select
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
+                      value={selectedSlotIndex}
+                      onChange={(e) => setSelectedSlotIndex(e.target.value)}
                       required
                     >
                       <option value="" disabled>
                         Select a date…
                       </option>
-                      {availableDates.map((d) => (
-                        <option key={d} value={d}>
-                          {formatDateLabel(d)}
+                      {dateOptions.map(({ index, slot }) => (
+                        <option key={index} value={index}>
+                          {formatDateLabel(slot.start)}
                         </option>
                       ))}
                     </Form.Select>
@@ -286,9 +277,8 @@ export default function ListingDetail() {
                 </Row>
                 <Form.Text className="text-muted d-block mt-2">
                   End time auto-fills 1 hour after the start — adjust either
-                  as needed. Pick a date the provider has listed as open
-                  above; the exact time just needs to fall within their
-                  availability window that day.
+                  as needed. Only dates the provider has actually listed as
+                  open appear above.
                 </Form.Text>
               </Form>
             )}

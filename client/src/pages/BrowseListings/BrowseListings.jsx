@@ -25,9 +25,9 @@ import Pagination from "../../components/Pagination.jsx";
 const MAX_COMPARE = 3;
 
 // Usability fix (asked for directly): the Category filter is now a dropdown
-// of every distinct category, alphabetical, paged 5 at a time — instead of a
+// of every distinct category, alphabetical, paged 6 at a time — instead of a
 // free-text box where you had to already know a category's exact spelling.
-const CATEGORY_PAGE_SIZE = 5;
+const CATEGORY_PAGE_SIZE = 6;
 
 export default function BrowseListings() {
   const [filters, setFilters] = useState({
