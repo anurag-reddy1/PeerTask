@@ -10,11 +10,11 @@ PeerTask is a campus micro-task and service marketplace built for university stu
 
 1. **As a student with a task**, I want to post it with a budget and deadline so that other students can offer to help me, and I can pick the best offer.
 
-2. **As a student willing to help**, I want to browse open tasks filtered by location and budget so that I can find tasks that match my schedule and interests and submit an offer.
+2. **As a student willing to help**, I want to browse open tasks with a single search field that finds by title or location, and see whether the budget is hourly, daily, or a flat total, so that I can quickly find tasks that match my availability and submit an offer.
 
-3. **As a student with a marketable skill**, I want to publish a service listing with my hourly rate and available time slots so that peers can discover me and request bookings.
+3. **As a student with a marketable skill**, I want to publish a service listing with my hourly rate and multiple availability slots — with the end time auto-suggested when I pick a start — so that peers can discover me and request bookings.
 
-4. **As a student needing a service**, I want to browse service listings by category and rate, view provider details, and request a booking for a specific time window.
+4. **As a student needing a service**, I want to browse service listings by a dropdown of real categories (not a free-text box), compare multiple providers side by side, and request a booking with auto-suggested end time.
 
 5. **As a registered user**, I want a personal dashboard where I can see all my posted tasks, submitted offers, owned listings, and booking requests in one place so I never lose track of my activity.
 
@@ -88,27 +88,29 @@ PeerTask is a campus micro-task and service marketplace built for university stu
 
 ### Color Palette
 
-PeerTask uses the default Bootstrap 5 light theme with a single custom accent color.
+PeerTask uses a custom design system built on top of Bootstrap 5, with CSS custom properties for all brand colors.
 
 | Token | Value | Usage |
 |---|---|---|
-| Brand accent | `#6c8cff` (periwinkle blue) | Logo word mark, hero headline |
-| Page background | `#f6f7f9` (off-white) | Body background — warmer than pure white |
+| `--pt-brand` | `#4a6ee0` (blue) | Brand accent — logo wordmark, hero headline, primary links |
+| `--pt-brand-dark` | `#3558c4` | Link hover color (meets WCAG AA 4.5:1 on the page background) |
+| `--pt-bg` | `#f6f7f9` (off-white) | Body background — warmer than pure white |
+| `--pt-approve` | `#198754` | Accept/Confirm action buttons (`variant="success"`) |
+| `--pt-cancel` | `#dc3545` | Decline/Cancel/Withdraw action buttons (`variant="outline-danger"`) |
 | Card background | `#ffffff` | Bootstrap default card/navbar white |
-| Primary button | Bootstrap `primary` | Sign-in, Register, Submit CTAs |
-| Outline secondary | Bootstrap `outline-secondary` | Logout, cancel actions |
 | Status badges | Bootstrap `success / warning / secondary / danger` | open / pending / matched / cancelled |
 | Border/shadow | Bootstrap `border-bottom shadow-sm` | Navbar separator |
 
-The periwinkle accent gives the app a slightly playful, student-friendly feel without deviating from Bootstrap's accessible, high-contrast defaults.
+Approve (green) and cancel (red) actions use distinct, semantically meaningful colors throughout the app — offer Accept/Decline on TaskDetail, booking Confirm/Cancel on ListingDetail, and Withdraw on MyOffers all follow this convention consistently.
 
 ### Typography
 
-PeerTask uses Bootstrap 5's native font stack (`system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`), which renders with the OS native sans-serif on every platform. No custom fonts are loaded — this keeps the bundle small and avoids a flash of invisible text.
+PeerTask loads two Google Fonts for a polished, student-friendly feel:
 
-- **Headings**: Bootstrap's default `h1`–`h6` sizing
-- **Brand name**: `fw-bold` Bootstrap utility class + the `#6c8cff` accent span
-- **Code / IDs**: Not displayed to users
+- **Body**: [Inter](https://fonts.google.com/specimen/Inter) — a clean, highly legible sans-serif designed for screen reading. Applied via `--pt-font-body` to `body`.
+- **Headings**: [Poppins](https://fonts.google.com/specimen/Poppins) — a geometric sans-serif with a slightly playful feel. Applied via `--pt-font-heading` to all `h1`–`h6` elements.
+
+Both are loaded from Google Fonts with `rel="preconnect"` to minimize FOUT. The fallback stack is `system-ui, sans-serif`.
 
 ### Layout
 
@@ -129,12 +131,15 @@ PeerTask uses Bootstrap 5's native font stack (`system-ui, -apple-system, "Segoe
 
 ## Accessibility
 
-- All Bootstrap form fields include `<Form.Label>` elements with `htmlFor` wiring, so screen readers announce each input's purpose.
+- All Bootstrap form fields include `<Form.Label>` elements with matching `controlId` / `htmlFor` wiring, so screen readers announce each input's purpose. Dynamic inputs (slot start/end in CreateListing, all filter fields in BrowseTasks and BrowseListings) use computed `controlId` values.
+- A skip-to-content link (`<a href="#main-content" className="skip-link">`) is the first focusable element in the DOM; it becomes visible on keyboard focus and lets screen-reader users bypass the navbar.
+- The `<Navbar>` is wrapped in a `<header>` element with `aria-label="Main navigation"` on the `<Navbar>` itself; page content is wrapped in `<main id="main-content">`.
 - The navbar hamburger toggle has `aria-controls="main-nav"` linking it to the collapsible panel.
 - NavDropdown toggle IDs (`nav-post`, `nav-my`) are unique per page for correct ARIA associations.
-- Status badges use Bootstrap's semantic color variants and always include the text label, so color is never the sole distinguishing signal.
+- Status badges use Bootstrap's semantic color variants and always include the text label, so color is never the sole distinguishing signal. Warning badges (`bg-warning`) override text color to `#000` for WCAG AA contrast.
+- All brand-color links and buttons meet WCAG AA 4.5:1 contrast on the `#f6f7f9` page background.
 - Interactive cards include visible focus styles inherited from Bootstrap's focus-visible rules.
-- All pages use semantic HTML landmarks: `<nav>` (Navbar), `<main>` (Layout container), `<footer>` not present — content is kept to main.
+- Pagination buttons use `variant="outline-dark"` for sufficient contrast (was `outline-secondary`, which fell below 4.5:1).
 
 ---
 
@@ -205,17 +210,18 @@ Browser (React SPA)
 ┌─────────────────────────────────────────────────────┐
 │  NAVBAR                                             │
 ├─────────────────────────────────────────────────────┤
-│  Browse Tasks                                       │
+│  Browse Tasks                        [Post a Task]  │
 │  ┌──────────────────────────────────────────────┐  │
-│  │ Min $[____] Max $[____] Location[____] After[_]│  │
-│  │                            [Search]           │  │
+│  │ Search[title or location] Min$[_] Max$[_]    │  │
+│  │   📍 Boston (suggestion)                     │  │  ← location autocomplete
+│  │   📍 Brooklyn (suggestion)                   │  │
+│  │ After[____]           [Apply] [Clear]        │  │
 │  └──────────────────────────────────────────────┘  │
 │                                                     │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
 │  │ Task A   │  │ Task B   │  │ Task C   │         │
-│  │ $20 · loc│  │ $45 · loc│  │ $15 · loc│         │
-│  │ 2 offers │  │ 0 offers │  │ 1 offer  │         │
-│  │ [View]   │  │ [View]   │  │ [View]   │         │
+│  │ $20/hr   │  │ $45/day  │  │ $15      │         │  ← budget unit shown
+│  │ 2 pending│  │ 0 pending│  │ 1 pending│         │
 │  └──────────┘  └──────────┘  └──────────┘         │
 │                                                     │
 │          [< Prev]  Page 1 of 12  [Next >]          │
@@ -232,15 +238,21 @@ Browser (React SPA)
 ├─────────────────────────────────────────────────────┤
 │  Browse Listings                                    │
 │  ┌──────────────────────────────────────────────┐  │
-│  │ Category[____]  Max $/hr[____]  After[______] │  │
-│  │                                    [Search]   │  │
+│  │ Category [▾ Tutoring ▾]  Max$/hr[_]  After[_] │  │  ← dropdown picker
+│  │                                [Apply][Clear] │  │
+│  └──────────────────────────────────────────────┘  │
+│  2 listings selected to compare   [Compare] [Clear] │  ← compare bar
+│  ┌──────────────────────────────────────────────┐  │
+│  │ Title  | Rate    | Category | Avail | Pending│  │  ← compare table
+│  │ Guitar | $20/hr  | Music    | Jul 1 | 1      │  │
+│  │ Photo  | $35/hr  | Photo    | Jul 5 | 0      │  │
 │  └──────────────────────────────────────────────┘  │
 │                                                     │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
 │  │ Guitar   │  │ Photo    │  │ Tutoring │         │
 │  │ $20/hr   │  │ $35/hr   │  │ $25/hr   │         │
-│  │ 1 booking│  │ 0 booking│  │ 3 booking│         │
-│  │ [View]   │  │ [View]   │  │ [View]   │         │
+│  │ 1 pending│  │ 0 pending│  │ 3 pending│         │
+│  │ □ Compare│  │ □ Compare│  │ □ Compare│         │  ← compare checkbox
 │  └──────────┘  └──────────┘  └──────────┘         │
 │                                                     │
 │          [< Prev]  Page 1 of 12  [Next >]          │
