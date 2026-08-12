@@ -174,18 +174,23 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Task Board
 
-- Browse open tasks with filters: budget range, location, available-after date
+- Browse open tasks with filters: combined title+location search, budget range, available-after date
+- Location autocomplete: typing 2+ characters in the Search field suggests matching task locations via a debounced lookup
+- Budget type display: tasks show `$X/hr`, `$X/day`, or `$X` depending on how the poster set the budget unit
 - Server-side aggregation pipeline: pending offer count joined per task, poster name/school joined from Users
+- Post a task directly from the Browse page (shortcut button for logged-in users)
 - Post, edit, and delete your own tasks
 - Submit an offer on any open task you didn't post
 - **Atomic offer acceptance**: accepting an offer flips the task to `matched` via a single `findOneAndUpdate({ status: "open" })` — a concurrent accept gets a 409
 
 ### Service Listings
 
-- Browse available listings with filters: category, max rate, available-after date
+- Browse available listings with filters: category picker dropdown (dynamically loaded from the database, paged 6 at a time), max rate, available-after date
+- Compare up to 3 listings side by side: check the Compare box on any cards, then click "Compare selected" to see a rate/category/availability table
+- Empty-state suggestions: when filters return no results, a small set of unfiltered listings is shown as a fallback so users are never left with a blank page
 - Server-side aggregation pipeline: pending booking count joined per listing, provider name/school joined from Users
-- Create listings with multiple availability slots
-- Request a booking for any slot within a listing's availability window
+- Create listings with multiple availability slots; setting a slot's start time auto-fills the end time 1 hour later
+- Request a booking for any slot; start time auto-fills end time 1 hour later
 - **Atomic booking confirmation**: confirming a booking claims the slot via `findOneAndUpdate` with a `$not/$elemMatch` overlap guard — a concurrent confirm for the same slot gets a 409
 
 ### Personal Dashboard
